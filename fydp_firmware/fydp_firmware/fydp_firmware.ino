@@ -94,8 +94,8 @@ void loop() {
   //Read joystick value y axis for left motor
 
   int motorValY = motorControlY(joyYVal);
-  digitalWrite(MOTOR_9,motorValY);
-  digitalWrite(MOTOR_10,motorValY);
+  analogWrite(MOTOR_9,motorValY);
+  analogWrite(MOTOR_10,motorValY);
 
   //send speed control analog signal to motor controller
 
