@@ -1,9 +1,9 @@
 #include <Wire.h>
 
-#define BUTTON_UP 2
-#define BUTTON_RIGHT 3
-#define BUTTON_DOWN 4
-#define BUTTON_LEFT 5
+#define BUTTON_UP 5
+#define BUTTON_RIGHT 2
+#define BUTTON_DOWN 3
+#define BUTTON_LEFT 4//up: 5, down: 3, right:2, left, 4
 #define BUTTON_E 6
 #define BUTTON_F 7
 #define BUTTON_K 8
@@ -59,11 +59,12 @@ int rBtn(int btn){
 return (btn==0)?1:0;
 }
 
-int motorControlY(int val){
-  if(val<509) return 0;//only move when moving joystick up
-  val = val - 509;//1023 - 509 = 514
-  //map 0 - 509 to 0 - 4095
-  return map(val, 0, 514,0,255);  
+int motorControlX(int val){
+  if(val>=506) return 0;//only move when moving joystick in negative direction
+  val = val-505;//505 to 0 AND to 0-505
+  val = abs(val);
+  //map 0 - 506 to 0-255
+  return map(val, 0, 505,0,190);  //0-255 total
 
 }
 
@@ -88,15 +89,15 @@ void loop() {
   Serial.print("F = "), Serial.print(rBtn(btnFVal)),Serial.print("\t");
   Serial.print("K = "), Serial.print(rBtn(btnKVal)),Serial.print("\t");
   Serial.print("X = "), Serial.print(joyXVal),Serial.print("\t");
-  Serial.print("Y = "), Serial.println(joyYVal);
+  Serial.print("Y = "), Serial.print(joyYVal),Serial.print("\t");
   //dac ranges from 0 to 4095
   //x axis for right motor
   //Read joystick value y axis for left motor
 
-  int motorValY = motorControlY(joyYVal);
-  analogWrite(MOTOR_9,motorValY);
-  analogWrite(MOTOR_10,motorValY);
-
+  int motorValX = motorControlX(joyXVal);
+  analogWrite(MOTOR_9,motorValX);
+  analogWrite(MOTOR_10,motorValX);
+  Serial.print("motor = "), Serial.println(motorValX);
   //send speed control analog signal to motor controller
 
 
@@ -105,18 +106,39 @@ void loop() {
   if(btnLinActUp==0){
    digitalWrite(LINOUT11, HIGH);
     digitalWrite(LINOUT12, LOW);
+      Serial.println("linact up");
   }
   //Retract linear actuator
   if(btnLinActDown==0){
    digitalWrite(LINOUT11, LOW);
     digitalWrite(LINOUT12, HIGH);
+    Serial.println("linact down");
   }
   //stop linear actuator
   if(btnStopLin==0){
    digitalWrite(LINOUT11, LOW);
     digitalWrite(LINOUT12, LOW);
+    Serial.println("linact stop");
   }
 
+//btn right, execute sequence of actions
+if(btnRight==0){
+  //extend linear actuator
+  digitalWrite(LINOUT11, HIGH);
+    digitalWrite(LINOUT12, LOW);
+      Serial.println("linact up 10s");
+      delay(10000);
+  //Forward for 6 seconds
+   analogWrite(MOTOR_9,190);
+  analogWrite(MOTOR_10,190);
+  Serial.println("forward 6s");
+  delay(6000);
+  //Retract linear actuator
+     digitalWrite(LINOUT11, LOW);
+    digitalWrite(LINOUT12, HIGH);
+    Serial.println("linact down 10s");
+    delay(10000);
+}
   
   delay(DELAY);
 }
